@@ -12,9 +12,18 @@
       v-if="albums.length !== 0"
       v-for="album in albums">
       <div class="album" :key="album.id">
-        <v-toolbar flat dense dark class="album-title" @click="loadAlbum(album)">
+        <v-toolbar flat dense dark class="album-title">
           <img :src="album.details.images[2].url"/>
           <v-toolbar-title>{{album.details.name}}</v-toolbar-title>
+          <v-toolbar-items>
+            <v-btn
+              slot="action" class="white accent-2"
+              @click="likeAlbum(album)"
+              light small absolute right middle white fab>
+              <v-icon v-if="!isAlbumLiked(album)">favorite_border</v-icon>
+              <v-icon v-if="isAlbumLiked(album)">favorite</v-icon>
+            </v-btn>
+          </v-toolbar-items>
         </v-toolbar>
         <!-- List of album's tracks -->
         <div class="pl-4 pr-4 pt-2 pb-2">
@@ -47,20 +56,31 @@ import AuthenticationService from '@/services/AuthenticationService'
 export default {
   data () {
     return {
+      user: {},
       artist: {},
       albums: [],
       topTracks: [],
       selectedTrack: {},
-      selectedAlbum: {
-        details: {},
-        tracks: []
-      }
+      likedAlbums: []
     }
   },
   methods: {
-    async loadAlbum (album) {
-      this.selectedAlbum = album
-      console.log(this.selectedAlbum)
+    isAlbumLiked (album) {
+      for (let i = 0; i < this.likedAlbums.length; i++) {
+        if (this.likedAlbums[i].albumId === album.details.id) {
+          return true
+        }
+      }
+      return false
+    },
+    async likeAlbum (album) {
+      if (!this.isAlbumLiked(album)) {
+        await AlbumService.likeAlbum(this.user.id, album.details.id)
+        console.log('not liked yet')
+      } else {
+        await AlbumService.unLikeAlbum(this.user.id, album.details.id)
+      }
+      this.likedAlbums = (await AlbumService.getUserLikedAlbums(this.user.id)).data
     },
     async playTrack (track) {
       try {
@@ -78,7 +98,8 @@ export default {
       }
     },
     listenInvalidToken (error) {
-      if (error.toString().includes('with status code 401')) {
+      if ((error.response.data.error.message === 'Only valid bearer authentication supported') ||
+          (error.response.data.error.status === 401)) {
         this.$store.dispatch('setToken', '')
         AuthenticationService.getToken()
       }
@@ -100,13 +121,13 @@ export default {
   },
   async mounted () {
     try {
+      this.user = this.$store.state.user
       // Extract token from URL
       const url = window.location.toString()
       if (url.includes('access_token=')) {
         const token = url.slice(url.indexOf('=') + 1, url.indexOf('&'))
         this.$store.dispatch('setToken', token)
       }
-
       // Fetch artist data (details, albums, tracks)
       const artistId = this.$store.state.artist
       this.artist = (await ArtistService.getArtistDetails(artistId)).data
@@ -121,6 +142,9 @@ export default {
         this.albums.push(album)
         console.log(album)
       }
+      // Fetch user's liked albums
+      this.likedAlbums = (await AlbumService.getUserLikedAlbums(this.user.id)).data
+      console.log(this.likedAlbums)
     } catch (error) {
       console.log(error)
       // If token is expired or invalid

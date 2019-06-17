@@ -42,6 +42,8 @@
     data () {
       return {
         linkLogin: [
+          {title: 'Tracks', icon: 'music_note', route: 'artist-details'},
+          {title: 'Albums', icon: 'album', route: 'favourites'},
           {title: 'Log Out', icon: 'lock', route: 'logout'}
         ],
         linksLogout: [
