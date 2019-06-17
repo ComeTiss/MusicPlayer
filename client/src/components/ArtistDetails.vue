@@ -21,7 +21,7 @@
               @click="likeAlbum(album)"
               light small absolute right middle white fab>
               <v-icon v-if="!isAlbumLiked(album)">favorite_border</v-icon>
-              <v-icon v-if="isAlbumLiked(album)">favorite</v-icon>
+              <v-icon v-else>favorite</v-icon>
             </v-btn>
           </v-toolbar-items>
         </v-toolbar>
@@ -68,7 +68,7 @@ export default {
     isAlbumLiked (album) {
       for (let i = 0; i < this.likedAlbums.length; i++) {
         if (this.likedAlbums[i].albumId === album.details.id) {
-          return true
+          return this.likedAlbums[i].userId === this.user.id
         }
       }
       return false
@@ -78,6 +78,7 @@ export default {
         await AlbumService.likeAlbum(this.user.id, album.details.id)
         console.log('not liked yet')
       } else {
+        console.log('liked already')
         await AlbumService.unLikeAlbum(this.user.id, album.details.id)
       }
       this.likedAlbums = (await AlbumService.getUserLikedAlbums(this.user.id)).data
@@ -99,9 +100,15 @@ export default {
     },
     listenInvalidToken (error) {
       if ((error.response.data.error.message === 'Only valid bearer authentication supported') ||
-          (error.response.data.error.status === 401)) {
-        this.$store.dispatch('setToken', '')
+        (error.response.data.error.status === 401)) {
         AuthenticationService.getToken()
+      }
+    },
+    extractTokenFromUrl () {
+      const url = window.location.toString()
+      if (url.includes('access_token=')) {
+        const token = url.slice(url.indexOf('=') + 1, url.indexOf('&'))
+        this.$store.dispatch('setToken', token)
       }
     },
     setTrackBackground (track) {
@@ -122,12 +129,7 @@ export default {
   async mounted () {
     try {
       this.user = this.$store.state.user
-      // Extract token from URL
-      const url = window.location.toString()
-      if (url.includes('access_token=')) {
-        const token = url.slice(url.indexOf('=') + 1, url.indexOf('&'))
-        this.$store.dispatch('setToken', token)
-      }
+      this.extractTokenFromUrl()
       // Fetch artist data (details, albums, tracks)
       const artistId = this.$store.state.artist
       this.artist = (await ArtistService.getArtistDetails(artistId)).data
@@ -147,8 +149,7 @@ export default {
       console.log(this.likedAlbums)
     } catch (error) {
       console.log(error)
-      // If token is expired or invalid
-      this.listenInvalidToken(error)
+      this.listenInvalidToken(error) // If token is expired or invalid
     }
   }
 }

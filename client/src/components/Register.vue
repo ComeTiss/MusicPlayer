@@ -30,7 +30,7 @@
         return {
           email: '',
           password: '',
-      error: null
+          error: null
         }
       },
       methods: {
@@ -40,10 +40,10 @@
               email: this.email,
               password: this.password
             })
-            this.$router.push('/artist')
             this.$store.dispatch('setUser', response.data.user)
+            this.$router.push({name: 'artist-details'})
           } catch (error) {
-            console.log(error)
+            this.error = error.response.data.error
           }
         }
       }
@@ -52,6 +52,6 @@
 
 <style scoped>
   .error {
-    color: white;
+    color: red;
   }
 </style>
