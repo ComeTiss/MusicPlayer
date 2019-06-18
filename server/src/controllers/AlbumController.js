@@ -29,8 +29,6 @@ module.exports = {
 
     async unLikeAlbum (req, res) {
         try {
-            console.log("==========")
-            console.log(req.body)
             await LikedAlbum.destroy ({
                 where: {
                     userId: req.body.userId,

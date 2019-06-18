@@ -75,7 +75,6 @@ export default {
     },
     async likeAlbum (album) {
       if (!this.isAlbumLiked(album)) {
-        console.log(album)
         await AlbumService.likeAlbum(this.user.id, album.details.id)
       } else {
         await AlbumService.unLikeAlbum(this.user.id, album.details.id)
@@ -99,7 +98,6 @@ export default {
     listenInvalidToken (error) {
       if ((error.response.data.error.message === 'Only valid bearer authentication supported') ||
         (error.response.data.error.status === 401)) {
-        console.log(error.response.data.error.message)
         AuthenticationService.getToken()
       }
     },
