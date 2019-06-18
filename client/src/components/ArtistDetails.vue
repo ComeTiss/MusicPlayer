@@ -1,5 +1,5 @@
 <template>
-  <v-flex v-flex xs8 offset-xs3 mt-5>
+  <v-flex xs8 offset-xs3 mt-5>
     <h1 class="artist-name">{{artist.name}}</h1>
 
     <!-- Audio Player -->
@@ -75,18 +75,16 @@ export default {
     },
     async likeAlbum (album) {
       if (!this.isAlbumLiked(album)) {
+        console.log(album)
         await AlbumService.likeAlbum(this.user.id, album.details.id)
-        console.log('not liked yet')
       } else {
-        console.log('liked already')
         await AlbumService.unLikeAlbum(this.user.id, album.details.id)
       }
       this.likedAlbums = (await AlbumService.getUserLikedAlbums(this.user.id)).data
     },
     async playTrack (track) {
       try {
-        // Highlight selected Track
-        this.setTrackBackground(track)
+        this.setTrackBackground(track) // Highlight selected Track
         // Get Track details
         this.selectedTrack = (await TrackService.getTrackDetails(track.id)).data
         // Update audio player wih track
@@ -101,6 +99,7 @@ export default {
     listenInvalidToken (error) {
       if ((error.response.data.error.message === 'Only valid bearer authentication supported') ||
         (error.response.data.error.status === 401)) {
+        console.log(error.response.data.error.message)
         AuthenticationService.getToken()
       }
     },
@@ -142,11 +141,9 @@ export default {
           tracks: tracks
         }
         this.albums.push(album)
-        console.log(album)
       }
       // Fetch user's liked albums
       this.likedAlbums = (await AlbumService.getUserLikedAlbums(this.user.id)).data
-      console.log(this.likedAlbums)
     } catch (error) {
       console.log(error)
       this.listenInvalidToken(error) // If token is expired or invalid
