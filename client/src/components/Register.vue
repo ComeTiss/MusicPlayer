@@ -2,8 +2,7 @@
   <div id="background">
     <v-layout>
       <v-flex mt-5 offset-xs3 xs6>
-          <form autocomplete="off"
-                name="tab-tracker-form">
+          <form autocomplete="off">
             <v-text-field
               label="Email"
               v-model="email"/>
@@ -40,7 +39,6 @@ export default {
           email: this.email,
           password: this.password
         })
-        console.log(response)
         this.$store.dispatch('setUser', response.data.user)
         this.$router.push({name: 'artist-details'})
       } catch (error) {

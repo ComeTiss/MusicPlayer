@@ -2,8 +2,7 @@
   <div id="background">
     <v-layout>
       <v-flex mt-5 offset-xs3 xs6>
-          <form autocomplete="off"
-                name="tab-tracker-form">
+          <form autocomplete="off">
             <v-text-field label="Email" v-model="email"/>
             <br>
             <v-text-field
